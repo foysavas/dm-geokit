@@ -9,14 +9,14 @@ module DataMapper
         include InstanceMethods
 
         property name.to_sym, DM::Text
-        property "#{name}_lat".to_sym, Float
-        property "#{name}_lng".to_sym, Float
+        property "#{name}_lat".to_sym, Float, :precision => 9, :scale => 6
+        property "#{name}_lng".to_sym, Float, :precision => 9, :scale => 6
 
         define_method "#{name}" do
-          if instance_eval("@#{name}").nil?
+          if(value = attribute_get(name.to_sym)).nil?
             nil
           else
-            ::YAML.load(instance_eval("@#{name}"))
+            ::YAML.load(value)
           end
         end
 

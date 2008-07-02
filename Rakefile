@@ -9,7 +9,7 @@ CLEAN.include '{log,pkg}/'
 
 spec = Gem::Specification.new do |s|
   s.name             = 'dm-geokit'
-  s.version          = '0.9.2'
+  s.version          = '0.9.4'
   s.platform         = Gem::Platform::RUBY
   s.has_rdoc         = true
   s.extra_rdoc_files = %w[ README LICENSE TODO ]
@@ -20,7 +20,7 @@ spec = Gem::Specification.new do |s|
   s.homepage         = 'http://github.com/sam/dm-more/tree/master/dm-geokit'
   s.require_path     = 'lib'
   s.files            = FileList[ '{lib,spec}/**/*.rb', 'spec/spec.opts', 'Rakefile', *s.extra_rdoc_files ]
-  s.add_dependency('dm-core', "=#{s.version}")
+  s.add_dependency('dm-core')
 end
 
 task :default => [ :spec ]

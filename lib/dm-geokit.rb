@@ -1,6 +1,5 @@
 require 'rubygems'
-require 'geokit-core'
+require 'geokit'
 require 'dm-core'
 
 require File.join(File.dirname(__FILE__),'dm-geokit','resource')
-

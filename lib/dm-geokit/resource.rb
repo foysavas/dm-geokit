@@ -1,22 +1,33 @@
 module DataMapper
   module GeoKit
+    PROPERTY_NAMES = %w(lat lng street_address city state zip country_code full_address)
+
     def self.included(base)
       base.extend ClassMethods
     end
 
     module ClassMethods
       def has_geographic_location(name, options = {})
-        include InstanceMethods
+        return if self.included_modules.include?(DataMapper::GeoKit::InstanceMethods)
+        send :include, InstanceMethods
+        send :include, ::GeoKit::Mappable
 
-        property name.to_sym, DM::Text
-        property "#{name}_lat".to_sym, Float, :precision => 9, :scale => 6
-        property "#{name}_lng".to_sym, Float, :precision => 9, :scale => 6
+        property name.to_sym, String, :size => 255
+        PROPERTY_NAMES.each do |p|
+          if p.match(/l(at|ng)/)
+            property "#{name}_#{p}".to_sym, Float, :precision => 15, :scale => 12, :index => true
+          else
+            property "#{name}_#{p}".to_sym, String, :size => 255
+          end
+        end
+
+        DataMapper.auto_upgrade!
 
         define_method "#{name}" do
           if(value = attribute_get(name.to_sym)).nil?
             nil
           else
-            ::YAML.load(value)
+            GeographicLocation.new(name, self)
           end
         end
 
@@ -25,16 +36,76 @@ module DataMapper
             nil
           else value.is_a?(String)
             geo = ::GeoKit::Geocoders::MultiGeocoder.geocode(value)
-            attribute_set("#{name}".to_sym, geo.to_yaml)
-            attribute_set("#{name}_lat".to_sym, geo.lat)
-            attribute_set("#{name}_lng".to_sym, geo.lng)
-          end         
+            if geo.success?
+              attribute_set(name.to_sym, geo.full_address)
+              PROPERTY_NAMES.each do |p|
+                attribute_set("#{name}_#{p}".to_sym, geo.send(p.to_sym))
+              end
+            end         
+          end
         end
+
+        cattr_accessor :distance_column_name, :default_units, :default_formula, :lat_column_name, :lng_column_name, :qualified_lat_column_name, :qualified_lng_column_name
+        self.distance_column_name = options[:distance_column_name]  || 'distance'
+        self.default_units = options[:default_units] || ::GeoKit::default_units
+        self.default_formula = options[:default_formula] || ::GeoKit::default_formula
+        self.lat_column_name = "#{name}_lat"
+        self.lng_column_name = "#{name}_lng"
+        self.qualified_lat_column_name = "#{storage_name}.#{lat_column_name}"
+        self.qualified_lng_column_name = "#{storage_name}.#{lng_column_name}"
+        if options.include?(:auto_geocode) && options[:auto_geocode]
+          # if the form auto_geocode=>true is used, let the defaults take over by suppling an empty hash
+          options[:auto_geocode] = {} if options[:auto_geocode] == true 
+          cattr_accessor :auto_geocode_field, :auto_geocode_error_message
+          self.auto_geocode_field = options[:auto_geocode][:field] || 'address'
+          self.auto_geocode_error_message = options[:auto_geocode][:error_message] || 'could not locate address'
+          
+          # set the actual callback here
+#           before_validation_on_create :auto_geocode_address
+        end
+
       end
+      alias acts_as_mappable has_geographic_location
     end
 
     module InstanceMethods
+      # Mix class methods into module.
+      def self.included(base) # :nodoc:
+        base.extend SingletonMethods
+      end
+      
+      # Class singleton methods to mix into ActiveRecord.
+      module SingletonMethods # :nodoc:
+        # Extends the existing find method in potentially two ways:
+        # - If a mappable instance exists in the options, adds a distance column.
+        # - If a mappable instance exists in the options and the distance column exists in the
+        #   conditions, substitutes the distance sql for the distance column -- this saves
+        #   having to write the gory SQL.
+        def all(query = {})
+          super(prepare_query(query))
+        end
 
+        private
+
+        def prepare_query(query)
+          origin = query.delete(:origin)
+          within = query.delete(:within)
+          query
+        end
+
+      end
+    end
+
+    class GeographicLocation
+      attr_accessor :full_address, :lat, :lng, :street_address, :city, :state, :zip, :country_code
+      def initialize(field, obj)
+        PROPERTY_NAMES.each do |p|
+          instance_variable_set("@#{p}",obj.send("#{field}_#{p}"))
+        end
+      end
+      def to_s
+        @full_address
+      end
     end
 
   end

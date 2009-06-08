@@ -1,4 +1,9 @@
 dm-geokit
 =========
 
-DataMapper plugin for acts_as_mappable stuff.
+A mixin for Datamapper models that enables geographic functionality.
+
+* Search for content via simple query methods, e.g. Location.all(:origin => 'Portland, OR', :within => 5.miles)
+
+
+Requires the GeoKit gem.

@@ -3,9 +3,9 @@ begin
   Jeweler::Tasks.new do |s| 
     s.name = 'dm-geokit' 
     s.summary = "DataMapper plugin for geokit stuff forked from Foy Savas's project. Now relies on the geokit gem rather than Foy's gem."
-    s.authors = ['Foy Savas', 'Daniel Higginbotham']
-    s.email = 'daniel@flyingmachinestudios.com'
-    s.homepage = "http://github.com/flyingmachine/dm-geokit/tree/master" 
+    s.authors = ['Foy Savas', 'Daniel Higginbotham', 'Matt King']
+    s.email = 'matt@mattking.org'
+    s.homepage = "http://github.com/mattking17/dm-geokit/tree/master" 
     s.description = "Simple and opinionated helper for creating Rubygem projects on GitHub" 
     s.files =  FileList["[A-Z]*", "{bin,generators,lib,test}/**/*", 'lib/jeweler/templates/.gitignore'] 
     s.require_path     = 'lib'

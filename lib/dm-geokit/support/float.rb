@@ -1,0 +1,1 @@
+Float.send(:include, DistanceSupport)

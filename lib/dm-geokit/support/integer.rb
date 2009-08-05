@@ -1,0 +1,1 @@
+Integer.send(:include, DistanceSupport)

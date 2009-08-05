@@ -32,7 +32,7 @@ describe "dm-geokit" do
   end
 
   it "should convert to LatLng" do
-    l = Location.create(:address => "5119 NE 27th ave portland, or 97211")
+    l = Location.create(:address => "5119 NE 27th ave portland, or")
     l.should respond_to(:to_lat_lng)
     l.to_lat_lng.should be_a(::GeoKit::LatLng)
     l.to_lat_lng.lat.should == l.address.lat
@@ -51,8 +51,20 @@ describe "dm-geokit" do
     end
   end
 
-  it "should find a location" do
-    Location.all(:origin => 'portland, or', :within => 5).size.should == 2
+  it "should find a location with LatLng Object" do
+    Location.all(:address.near => {:origin => ::GeoKit::LatLng.new(45.5767359,-122.670399), :distance => 3.mi}).size.should == 2
+  end
+
+  it "should find a location with a String" do
+    Location.all(:address.near => {:origin => 'portland, or', :distance => 3.mi}).size.should == 2
+  end
+
+  it "should find a location with LatLng Object in KM" do
+    Location.all(:address.near => {:origin => ::GeoKit::LatLng.new(45.5767359,-122.670399), :distance => 4.km}).size.should == 2
+  end
+
+  it "should find a location with a String in KM" do
+    Location.all(:address.near => {:origin => 'portland, or', :distance => 5.km}).size.should == 2
   end
 
 end

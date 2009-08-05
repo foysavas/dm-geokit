@@ -87,10 +87,30 @@ module DataMapper
 
         private
 
+        # Looks in the query for keys that are a DistanceOperator, then extracts the keys/values and turns then into conditions
         def prepare_query(query)
-          origin = query.delete(:origin)
-          within = query.delete(:within)
+          query.keys.inject({}){|m,k| m.merge!(k => query.delete(k)) if k.is_a?(DistanceOperator)}.each_pair do |k,v|
+            field = k.field
+            origin = v[:origin].is_a?(String) ? ::GeoKit::Geocoders::MultiGeocoder.geocode(v[:origin]) : v[:origin]
+            distance = v[:distance]
+            query[:conditions] = ["#{sphere_distance_sql(field, origin, distance.measurement)} < ?", distance.to_f]
+          end
           query
+        end
+
+        # Returns the distance SQL using the spherical world formula (Haversine).  The SQL is tuned
+        # to the database in use.
+        def sphere_distance_sql(field, origin, units)
+          lat = deg2rad(origin.lat)
+          lng = deg2rad(origin.lng)
+          qualified_lat_column = "`#{storage_name}`.`#{field}_lat`"
+          qualified_lng_column = "`#{storage_name}`.`#{field}_lng`"
+          sql=<<-SQL_END 
+                  (ACOS(least(1,COS(#{lat})*COS(#{lng})*COS(RADIANS(#{qualified_lat_column}))*COS(RADIANS(#{qualified_lng_column}))+
+                  COS(#{lat})*SIN(#{lng})*COS(RADIANS(#{qualified_lat_column}))*SIN(RADIANS(#{qualified_lng_column}))+
+                  SIN(#{lat})*SIN(RADIANS(#{qualified_lat_column}))))*#{units_sphere_multiplier(units)})
+                  SQL_END
+          sql
         end
 
       end
@@ -105,6 +125,14 @@ module DataMapper
       end
       def to_s
         @full_address
+      end
+    end
+
+    class DistanceOperator
+      attr_accessor :field, :type
+      def initialize(field,type)
+        @field = field
+        @type = type
       end
     end
 

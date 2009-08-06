@@ -126,6 +126,9 @@ module DataMapper
       def to_s
         @full_address
       end
+      def to_lat_lng
+        ::GeoKit::LatLng.new(@lat,@lng)
+      end
     end
 
     class DistanceOperator

@@ -3,7 +3,7 @@ dm-geokit
 
 A mixin for Datamapper models that enables geographic functionality.
 
-* Search for content via simple query methods, e.g. Location.all(:origin => 'Portland, OR', :within => 5.miles)
-
+* Search for content via DataMapper-style query methods, e.g. Location.all(:address.near => {:origin => 'Portland, OR', :distance => 5.mi})
+* Ability to specify multiple fields that are geocodable
 
 Requires the GeoKit gem.

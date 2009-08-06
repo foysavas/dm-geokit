@@ -31,14 +31,6 @@ describe "dm-geokit" do
     end
   end
 
-  it "should convert to LatLng" do
-    l = Location.create(:address => "5119 NE 27th ave portland, or")
-    l.should respond_to(:to_lat_lng)
-    l.to_lat_lng.should be_a(::GeoKit::LatLng)
-    l.to_lat_lng.lat.should == l.address.lat
-    l.to_lat_lng.lng.should == l.address.lng
-  end
-
   it "should set address fields on geocode" do
     l = Location.new
     l.address.should be(nil)
@@ -49,6 +41,14 @@ describe "dm-geokit" do
     DataMapper::GeoKit::PROPERTY_NAMES.each do |p|
       l.send("address_#{p}").should_not be(nil)
     end
+  end
+
+  it "should convert to LatLng" do
+    l = Location.create(:address => "5119 NE 27th ave portland, or 97211")
+    l.address.should respond_to(:to_lat_lng)
+    l.address.to_lat_lng.should be_a(::GeoKit::LatLng)
+    l.address.to_lat_lng.lat.should == l.address.lat
+    l.address.to_lat_lng.lng.should == l.address.lng
   end
 
   it "should find a location with LatLng Object" do

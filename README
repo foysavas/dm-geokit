@@ -4,6 +4,32 @@ dm-geokit
 A mixin for Datamapper models that enables geographic functionality.
 
 * Search for content via DataMapper-style query methods, e.g. Location.all(:address.near => {:origin => 'Portland, OR', :distance => 5.mi})
-* Ability to specify multiple fields that are geocodable
+* Sort by distance easily: Location.all(:address.near => {:origin => 'Portland, OR', :distance => 5.mi}, :order => [:address_distance.desc])
+* Ability to specify multiple fields that are geocodable (mostly)
+
+Usage
+=====
+
+Basic Class Definition:
+
+class Location
+  include DataMapper::Resource
+  property :id, Serial
+  has_geographic_location :address
+end
+
+This will automatically generate fields and methods for use with the DM Object, prefixed with the field name specified.
+Since the above example used the field :address, the following fields would be generated:
+
+* address_street_address
+* address_city
+* address_state
+* address_zip
+* address_country_code
+* address_full_address
+* address_lat
+* address_lng
+
+Whenever you set the :address field to a value, it will automatically geocode and store the information for you.
 
 Requires the GeoKit gem.

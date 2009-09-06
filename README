@@ -30,6 +30,20 @@ Since the above example used the field :address, the following fields would be g
 * address_lat
 * address_lng
 
-Whenever you set the :address field to a value, it will automatically geocode and store the information for you.
+You can either reference those fields directly, or use the proxy object returned by calling .address on your object:
+
+l = Location.all(:address.near => {:origin => 'Portland, OR', :distance => 5.mi})
+
+l.each do |loc|
+  puts loc.address # .to_s yields string representation of full address, e.g. "12345 My St. Portland, OR USA"
+  puts loc.address.inspect # the proxy object, GeographicLocation, with matching methods for each property
+  puts loc.address.street_address # getting the street_address from the proxy object
+  puts loc.address_street_address # directly access the SQL column
+end
+
+The GeographicLocation proxy object is a convenience to allow you to compare and sort results in Ruby.
+
+Requirements
+===========
 
 Requires the GeoKit gem.

@@ -67,4 +67,44 @@ describe "dm-geokit" do
     Location.all(:address.near => {:origin => 'portland, or', :distance => 5.km}).size.should == 2
   end
 
+  it "should respect other conditions (array)" do
+    Location.all(:conditions => ["id > 1000000000"], :address.near => {:origin => 'portland, or', :distance => 5.mi}).size.should == 0
+  end
+
+  it "should respect other conditions (hash)" do
+    Location.all(:conditions => {:id => 33}, :address.near => {:origin => 'portland, or', :distance => 5.mi}).size.should == 0
+  end
+
+  it "should respect other conditions (array with placeholders)" do
+    Location.all(:conditions => ["id = ?", 33], :address.near => {:origin => 'portland, or', :distance => 5.mi}).size.should == 0
+  end
+
+  it "should count locations" do
+    puts 'hi!'
+    Location.count(:address.near => {:origin => 'portland, or', :distance => 5.mi}).should == 2
+  end
+
+  it "should include distance field and have a float value" do
+    Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.should respond_to(:address_distance)
+    Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.address_distance.should be_a(Float)
+  end
+
+  it "should include distance field that changes with distance" do
+    Location.all(:address.near => {:origin => '97211', :distance => 5.mi}).first.address_distance.should_not == Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.address_distance
+  end
+
+  it "should order by distance desc" do
+    seattle = Location.create(:address => "Seattle, WA USA")
+    tacoma = Location.create(:address => "Tacoma, WA USA")
+    locations = Location.all(:address.near => {:origin => '97211', :distance => 500.mi}, :order => [:address_distance.desc])
+    locations.first.address_distance.should > locations.last.address_distance
+    puts locations.map{|l| l.address_distance}.inspect
+  end
+
+  it "should order by distance asc" do
+    locations = Location.all(:address.near => {:origin => '97211', :distance => 500.mi}, :order => [:address_distance.asc])
+    locations.first.address_distance.should < locations.last.address_distance
+    puts locations.map{|l| l.address_distance}.inspect
+  end
+
 end

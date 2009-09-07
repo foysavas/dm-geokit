@@ -29,6 +29,7 @@ describe "dm-geokit" do
     DataMapper::GeoKit::PROPERTY_NAMES.each do |p|
       l.address.should respond_to("#{p}".to_sym)
     end
+    l.address.should respond_to(:distance)
   end
 
   it "should set address fields on geocode" do
@@ -86,6 +87,8 @@ describe "dm-geokit" do
   it "should include distance field and have a float value" do
     Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.should respond_to(:address_distance)
     Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.address_distance.should be_a(Float)
+    Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.address.should respond_to(:distance)
+    Location.all(:address.near => {:origin => 'portland, or', :distance => 5.mi}).first.address.distance.should be_a(Float)
   end
 
   it "should include distance field that changes with distance" do

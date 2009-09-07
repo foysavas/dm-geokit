@@ -123,11 +123,12 @@ module DataMapper
     end
 
     class GeographicLocation
-      attr_accessor :full_address, :lat, :lng, :street_address, :city, :state, :zip, :country_code
+      attr_accessor :full_address, :lat, :lng, :street_address, :city, :state, :zip, :country_code, :distance
       def initialize(field, obj)
         PROPERTY_NAMES.each do |p|
           instance_variable_set("@#{p}",obj.send("#{field}_#{p}"))
         end
+        @distance = obj.send("#{field}_distance") if obj.respond_to?("#{field}_distance".to_sym)
       end
       def to_s
         @full_address

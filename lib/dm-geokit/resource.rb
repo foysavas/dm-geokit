@@ -71,7 +71,6 @@ module DataMapper
         def prepare_query(query)
           query.each_pair do |k,v|
             next if not k.is_a?(DistanceOperator)
-            puts k.inspect
             field = k.target
             origin = v[:origin].is_a?(String) ? ::GeoKit::Geocoders::MultiGeocoder.geocode(v[:origin]) : v[:origin]
             distance = v[:distance]
@@ -94,7 +93,6 @@ module DataMapper
         # in case conditions were altered by other means
         def expand_conditions(conditions, sql, value)
           if conditions.is_a?(Hash)
-            puts conditions.values
             [conditions.keys.inject(''){|m,k|
               m << "#{k} = ?"
             } << " AND #{sql} < ?"] + ([conditions.values] << value)
@@ -150,7 +148,7 @@ module DataMapper
         alias old_property_to_column_name property_to_column_name
         
         def property_to_column_name(repository, property, qualify)
-          if property.type == DataMapper::Types::Distance
+          if property.respond_to?(:type) and property.type == DataMapper::Types::Distance
             property.field
           else
             old_property_to_column_name(repository, property, qualify)

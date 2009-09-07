@@ -104,4 +104,10 @@ describe "dm-geokit" do
     locations.first.address_distance.should < locations.last.address_distance
   end
 
+  it "should filter on association search" do
+    Comment.create(:location_id => Location.first.id, :name => 'Example')
+    locations = Location.all(:address.near => {:origin => '97211', :distance => 500.mi}, :order => [:address_distance.asc], 'comments.name' => 'Example')
+    locations.size.should == 1
+  end
+
 end

@@ -80,7 +80,6 @@ describe "dm-geokit" do
   end
 
   it "should count locations" do
-    puts 'hi!'
     Location.count(:address.near => {:origin => 'portland, or', :distance => 5.mi}).should == 2
   end
 
@@ -98,13 +97,11 @@ describe "dm-geokit" do
     tacoma = Location.create(:address => "Tacoma, WA USA")
     locations = Location.all(:address.near => {:origin => '97211', :distance => 500.mi}, :order => [:address_distance.desc])
     locations.first.address_distance.should > locations.last.address_distance
-    puts locations.map{|l| l.address_distance}.inspect
   end
 
   it "should order by distance asc" do
     locations = Location.all(:address.near => {:origin => '97211', :distance => 500.mi}, :order => [:address_distance.asc])
     locations.first.address_distance.should < locations.last.address_distance
-    puts locations.map{|l| l.address_distance}.inspect
   end
 
 end

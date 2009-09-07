@@ -71,11 +71,12 @@ module DataMapper
         def prepare_query(query)
           query.each_pair do |k,v|
             next if not k.is_a?(DistanceOperator)
-            field = k.field
+            puts k.inspect
+            field = k.target
             origin = v[:origin].is_a?(String) ? ::GeoKit::Geocoders::MultiGeocoder.geocode(v[:origin]) : v[:origin]
             distance = v[:distance]
-            query[:conditions] = expand_conditions(query[:conditions], "#{sphere_distance_sql(field, origin, distance.measurement)} < #{distance.to_f}")
-            query[:fields] = expand_fields(query[:fields], k.field, "#{sphere_distance_sql(field, origin, distance.measurement)}")
+            query[:conditions] = expand_conditions(query[:conditions], "#{sphere_distance_sql(field, origin, distance.measurement)}", distance.to_f)
+            query[:fields] = expand_fields(query[:fields], field, "#{sphere_distance_sql(field, origin, distance.measurement)}")
             query.delete(k)
           end
           query
@@ -91,20 +92,22 @@ module DataMapper
         end
 
         # in case conditions were altered by other means
-        def expand_conditions(conditions, sql)
+        def expand_conditions(conditions, sql, value)
           if conditions.is_a?(Hash)
+            puts conditions.values
             [conditions.keys.inject(''){|m,k|
               m << "#{k} = ?"
-            } << " AND #{sql}", conditions.values]
+            } << " AND #{sql} < ?"] + ([conditions.values] << value)
           elsif conditions.is_a?(Array)
             if conditions.size == 1
-              ["#{conditions[0]} AND #{sql}"]
+              ["#{conditions[0]} AND #{sql} < ?", value]
             else
-              conditions[0] = ["#{conditions[0]} AND #{sql}"]
+              conditions[0] = ["#{conditions[0]} AND #{sql} < ?"]
+              conditions << value
               conditions
             end
           else
-            [sql]
+            ["#{sql} < ?", value]
           end
         end
 
@@ -136,12 +139,7 @@ module DataMapper
       end
     end
 
-    class DistanceOperator
-      attr_accessor :field, :type
-      def initialize(field,type)
-        @field = field
-        @type = type
-      end
+    class DistanceOperator < DataMapper::Query::Operator
     end
 
   end

@@ -46,4 +46,6 @@ The GeographicLocation proxy object is a convenience to allow you to compare and
 Requirements
 ===========
 
-Requires the GeoKit gem.
+* geokit >= 1.5.0
+* dm-core >= 0.10.1
+* dm-aggregates >= 0.10.1

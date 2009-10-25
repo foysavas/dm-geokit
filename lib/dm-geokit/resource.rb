@@ -12,14 +12,14 @@ module DataMapper
         send :include, InstanceMethods
         send :include, ::GeoKit::Mappable
 
-        property name.to_sym, String, :size => 255
+        property name.to_sym, String, :length => 255
         property "#{name}_distance".to_sym, Float
 
         PROPERTY_NAMES.each do |p|
           if p.match(/l(at|ng)/)
             property "#{name}_#{p}".to_sym, Float, :precision => 15, :scale => 12, :index => true
           else
-            property "#{name}_#{p}".to_sym, String, :size => 255
+            property "#{name}_#{p}".to_sym, String, :length => 255
           end
         end
 
@@ -60,6 +60,10 @@ module DataMapper
           super(prepare_query(query))
         end
 
+        def first(query = {})
+          super(prepare_query(query))
+        end
+
         # Required dm-aggregates to work
         def count(query = {})
           super(prepare_query(query))
@@ -75,6 +79,7 @@ module DataMapper
             origin = v[:origin].is_a?(String) ? ::GeoKit::Geocoders::MultiGeocoder.geocode(v[:origin]) : v[:origin]
             distance = v[:distance]
             query[:conditions] = expand_conditions(query[:conditions], "#{sphere_distance_sql(field, origin, distance.measurement)}", distance.to_f)
+            query[:conditions] = apply_bounds_conditions(query[:conditions], field, bounds_from_distance(distance.to_f, origin, distance.measurement))
             query[:fields] = expand_fields(query[:fields], field, "#{sphere_distance_sql(field, origin, distance.measurement)}")
             query.delete(k)
           end
@@ -95,17 +100,17 @@ module DataMapper
           if conditions.is_a?(Hash)
             [conditions.keys.inject(''){|m,k|
               m << "#{k} = ?"
-            } << " AND #{sql} < ?"] + ([conditions.values] << value)
+            } << " AND #{sql} <= ?"] + ([conditions.values] << value)
           elsif conditions.is_a?(Array)
             if conditions.size == 1
-              ["#{conditions[0]} AND #{sql} < ?", value]
+              ["#{conditions[0]} AND #{sql} <= ?", value]
             else
-              conditions[0] = ["#{conditions[0]} AND #{sql} < ?"]
+              conditions[0] = "#{conditions[0]} AND #{sql} <= ?"
               conditions << value
               conditions
             end
           else
-            ["#{sql} < ?", value]
+            ["#{sql} <= ?", value]
           end
         end
 
@@ -117,6 +122,24 @@ module DataMapper
           else # otherwise since we specify :fields, we have to add back in the original fields it would have selected
             self.properties(repository.name).defaults + [f]
           end
+        end
+
+        def bounds_from_distance(distance, origin, units)
+          if distance
+            ::GeoKit::Bounds.from_point_and_radius(origin,distance,:units=>units)
+          else 
+            nil
+          end
+        end
+
+        def apply_bounds_conditions(conditions, field, bounds)
+          qualified_lat_column = "`#{storage_name}`.`#{field}_lat`"
+          qualified_lng_column = "`#{storage_name}`.`#{field}_lng`"
+          sw, ne = bounds.sw, bounds.ne
+          lng_sql = bounds.crosses_meridian? ? "(#{qualified_lng_column}<=#{sw.lng} OR #{qualified_lng_column}>=#{ne.lng})" : "#{qualified_lng_column}>=#{sw.lng} AND #{qualified_lng_column}<=#{ne.lng}"
+          bounds_sql = "#{qualified_lat_column}>=#{sw.lat} AND #{qualified_lat_column}<=#{ne.lat} AND #{lng_sql}"
+          conditions[0] << " AND (#{bounds_sql})"
+          conditions
         end
 
       end
@@ -141,29 +164,60 @@ module DataMapper
     class DistanceOperator < DataMapper::Query::Operator
     end
 
+    module DataObjectsAdapter
+      def self.included(base)
+        base.send(:include, SQL)
+      end
+      module SQL
+        def self.included(base)
+          base.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+            # FIXME: figure out a cleaner approach than AMC
+            alias property_to_column_name_without_distance property_to_column_name
+            alias property_to_column_name property_to_column_name_with_distance
+          RUBY
+        end
+        
+        def property_to_column_name_with_distance(property, qualify)
+          if property.is_a?(DataMapper::Property) and property.type == DataMapper::Types::Distance
+            property.field
+          else
+            property_to_column_name_without_distance(property, qualify)
+          end
+        end
+      end
+    end
   end
 
   module Adapters
-    class DataObjectsAdapter
-      module SQL
-        alias old_property_to_column_name property_to_column_name
-        
-        def property_to_column_name(repository, property, qualify)
-          if property.respond_to?(:type) and property.type == DataMapper::Types::Distance
-            property.field
-          else
-            old_property_to_column_name(repository, property, qualify)
-          end
+    extendable do
+      # TODO: document
+      # @api private
+      def const_added(const_name)
+        if DataMapper::GeoKit.const_defined?(const_name)
+          adapter = const_get(const_name)
+          adapter.send(:include, DataMapper::GeoKit.const_get(const_name))
         end
-
+        super
       end
-      include SQL
     end
   end
 
   module Types
     class Distance < DataMapper::Type
       primitive Float
+    end
+  end
+
+  module Aggregates
+    module Model
+      def size
+        count
+      end
+    end
+    module Collection
+      def size
+        loaded? ? super : count
+      end
     end
   end
 end

@@ -1,10 +1,10 @@
 $TESTING=true
 $:.push File.join(File.dirname(__FILE__), '..', 'lib')
-%w(dm-geokit dm-aggregates).each{|l| require l}
+%w(dm-geokit).each{|l| require l}
 
 DataMapper::Logger.new(STDOUT, :debug)
 DataMapper.setup(:default, "mysql://root@localhost/dm_geokit_test")
-
+GeoKit::Geocoders::google = 'ABQIAAAAdh4tQvHsPhXZm0lCnIiqQxQK9-uvPXgtXTy8QpRnjVVz0_XBmRQRzegmnZqycC7ewqw26GJSVik0_w'
 class Location
   include DataMapper::Resource
   include DataMapper::GeoKit

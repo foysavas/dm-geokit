@@ -57,15 +57,15 @@ describe "dm-geokit" do
   end
 
   it "should find a location with a String" do
-    Location.all(:address.near => {:origin => 'portland, or', :distance => 3.mi}).size.should == 2
+    Location.all(:address.near => {:origin => 'portland, or', :distance => 10.mi}).size.should == 2
   end
 
   it "should find a location with LatLng Object in KM" do
-    Location.all(:address.near => {:origin => ::GeoKit::LatLng.new(45.5767359,-122.670399), :distance => 4.km}).size.should == 2
+    Location.all(:address.near => {:origin => ::GeoKit::LatLng.new(45.5767359,-122.670399), :distance => 10.km}).size.should == 2
   end
 
   it "should find a location with a String in KM" do
-    Location.all(:address.near => {:origin => 'portland, or', :distance => 5.km}).size.should == 2
+    Location.all(:address.near => {:origin => 'portland, or', :distance => 10.km}).size.should == 2
   end
 
   it "should respect other conditions (array)" do
@@ -77,7 +77,7 @@ describe "dm-geokit" do
   end
 
   it "should respect other conditions (array with placeholders)" do
-    Location.all(:conditions => ["id = ?", 33], :address.near => {:origin => 'portland, or', :distance => 5.mi}).size.should == 0
+    Location.all(:conditions => ["id = ?", 33], :address.near => {:origin => 'portland, or', :distance => 10.mi}).size.should == 0
   end
 
   it "should count locations" do
@@ -111,6 +111,10 @@ describe "dm-geokit" do
     Comment.create(:location_id => Location.first.id, :name => 'Example')
     locations = Location.all(:address.near => {:origin => '97211', :distance => 500.mi}, :order => [:address_distance.asc], 'comments.name' => 'Example')
     locations.size.should == 1
+  end
+
+  it "should find a location with LatLng Object using .first" do
+    Location.first(:address.near => {:origin => ::GeoKit::LatLng.new(45.5767359,-122.670399), :distance => 3.mi}).should be_a(Location)
   end
 
 end

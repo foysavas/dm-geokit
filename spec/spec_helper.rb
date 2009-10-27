@@ -27,5 +27,19 @@ class UninitializedLocation
   property :id, Serial
 end
 
+class NoDefaultGeocodeLocation
+  include DataMapper::Resource
+  include DataMapper::GeoKit
+  property :id, Serial
+  has_geographic_location :address, :auto_geocode => false
+end
+
+class DefaultGeocodeLocation
+  include DataMapper::Resource
+  include DataMapper::GeoKit
+  property :id, Serial
+  has_geographic_location :address, :auto_geocode => true
+end
+
 DataMapper.auto_migrate!
 

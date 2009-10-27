@@ -25,8 +25,18 @@ module DataMapper
 
         DataMapper.auto_upgrade!
 
+        if options[:auto_geocode] == true or options[:auto_geocode].nil?
+          define_method :auto_geocode? do
+            true
+          end
+        else
+          define_method :auto_geocode? do
+            false
+          end
+        end
+
         define_method "#{name}" do
-          if(value = attribute_get(name.to_sym)).nil?
+          if attribute_get(name.to_sym).nil?
             nil
           else
             GeographicLocation.new(name, self)
@@ -36,13 +46,17 @@ module DataMapper
         define_method "#{name}=" do |value|
           if value.nil?
             nil
-          else value.is_a?(String)
-            geo = ::GeoKit::Geocoders::MultiGeocoder.geocode(value)
-            if geo.success?
-              attribute_set(name.to_sym, geo.full_address)
-              PROPERTY_NAMES.each do |p|
-                attribute_set("#{name}_#{p}".to_sym, geo.send(p.to_sym))
+          elsif value.is_a?(String)
+            if auto_geocode?
+              geo = ::GeoKit::Geocoders::MultiGeocoder.geocode(value)
+              if geo.success?
+                attribute_set(name.to_sym, geo.full_address)
+                PROPERTY_NAMES.each do |p|
+                  attribute_set("#{name}_#{p}".to_sym, geo.send(p.to_sym))
+                end
               end
+            else
+              attribute_set(name.to_sym, value)
             end
           end
         end

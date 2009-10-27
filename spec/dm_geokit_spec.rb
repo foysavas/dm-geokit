@@ -15,6 +15,22 @@ describe "dm-geokit" do
     end
   end
 
+  it "should set auto_geocode? method" do
+    Location.instance_methods.map{|i| i.to_sym}.should include(:auto_geocode?)
+  end
+
+  it "should set auto_geocode? method to true without option set" do
+    Location.new.send("auto_geocode?".to_sym).should be_true
+  end
+
+  it "should set auto_geocode? method to true on option" do
+    DefaultGeocodeLocation.new.send("auto_geocode?".to_sym).should be_true
+  end
+
+  it "should set auto_geocode? method to false on option" do
+    NoDefaultGeocodeLocation.new.send("auto_geocode?".to_sym).should be_false
+  end
+
   it "should respond to acts_as_mappable" do
     Location.should respond_to(:acts_as_mappable)
   end
@@ -115,6 +131,11 @@ describe "dm-geokit" do
 
   it "should find a location with LatLng Object using .first" do
     Location.first(:address.near => {:origin => ::GeoKit::LatLng.new(45.5767359,-122.670399), :distance => 3.mi}).should be_a(Location)
+  end
+
+  it "should not geocode when auto_geocode is set to false" do
+    another = NoDefaultGeocodeLocation.create(:address => "San Francisco, CA USA")
+    another.address.should_not be_nil
   end
 
 end

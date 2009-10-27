@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name = %q{dm-geokit}
   s.version = "0.10.1"
-
+  s.rubyforge_project = 'dm-geokit'
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt King"]
   s.date = %q{2009-10-25}

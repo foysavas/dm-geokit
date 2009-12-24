@@ -2,11 +2,11 @@ begin
   require 'jeweler' 
   Jeweler::Tasks.new do |s| 
     s.name = 'dm-geokit' 
-    s.summary = "DataMapper plugin for geokit stuff forked from Foy Savas's project. Now relies on the geokit gem rather than Foy's gem."
-    s.authors = ['Foy Savas', 'Daniel Higginbotham', 'Matt King']
+    s.summary = "DataMapper plugin for geokit"
+    s.authors = ["Matt King"]
     s.email = 'matt@mattking.org'
     s.homepage = "http://github.com/mattking17/dm-geokit/tree/master" 
-    s.description = "Simple and opinionated helper for creating Rubygem projects on GitHub" 
+    s.description = "Geographic Property support for DataMapper"
     s.files =  FileList["[A-Z]*", "{bin,generators,lib,test}/**/*", 'lib/jeweler/templates/.gitignore'] 
     s.require_path     = 'lib'
     s.has_rdoc         = true

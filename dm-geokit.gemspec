@@ -2,12 +2,12 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dm-geokit}
-  s.version = "0.10.1"
+  s.version = "0.10.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Foy Savas", "Daniel Higginbotham", "Matt King"]
+  s.authors = ["Matt King"]
   s.date = %q{2009-12-24}
-  s.description = %q{Simple and opinionated helper for creating Rubygem projects on GitHub}
+  s.description = %q{Geographic Property support for DataMapper}
   s.email = %q{matt@mattking.org}
   s.extra_rdoc_files = [
     "LICENSE",
@@ -38,7 +38,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.1}
-  s.summary = %q{DataMapper plugin for geokit stuff forked from Foy Savas's project. Now relies on the geokit gem rather than Foy's gem.}
+  s.summary = %q{DataMapper plugin for geokit}
   s.test_files = [
     "spec/dm_geokit_spec.rb",
      "spec/spec_helper.rb"

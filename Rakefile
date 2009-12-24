@@ -14,6 +14,7 @@ begin
     s.extra_rdoc_files = %w[ README LICENSE TODO ]
     s.add_dependency 'dm-core'
     s.add_dependency 'andre-geokit'
+    s.rubyforge_project = "dm-geokit"
   end 
 rescue LoadError 
   puts "Jeweler, or one of its dependencies, is not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com" 

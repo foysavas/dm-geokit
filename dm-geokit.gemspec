@@ -37,6 +37,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/mattking17/dm-geokit/tree/master}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
+  s.rubyforge_project = %q{dm-geokit}
   s.rubygems_version = %q{1.3.1}
   s.summary = %q{DataMapper plugin for geokit}
   s.test_files = [

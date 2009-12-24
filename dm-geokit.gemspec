@@ -2,10 +2,10 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dm-geokit}
-  s.version = "0.10.1"
+  s.version = "0.10.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Foy Savas", "Daniel Higginbotham", "Matt King"]
+  s.authors = ["Matt King"]
   s.date = %q{2009-12-24}
   s.description = %q{Simple and opinionated helper for creating Rubygem projects on GitHub}
   s.email = %q{matt@mattking.org}

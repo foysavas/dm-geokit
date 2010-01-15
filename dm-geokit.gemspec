@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt King"]
-  s.date = %q{2009-12-24}
+  s.date = %q{2010-01-15}
   s.description = %q{Geographic Property support for DataMapper}
   s.email = %q{matt@mattking.org}
   s.extra_rdoc_files = [

@@ -191,11 +191,11 @@ module DataMapper
           RUBY
         end
         
-        def property_to_column_name_with_distance(property, qualify)
+        def property_to_column_name_with_distance(property, qualify, qualifier = nil)
           if property.is_a?(DataMapper::Property) and property.type == DataMapper::Types::Distance
             property.field
           else
-            property_to_column_name_without_distance(property, qualify)
+            property_to_column_name_without_distance(property, qualify, qualifier)
           end
         end
       end
@@ -222,16 +222,4 @@ module DataMapper
     end
   end
 
-  module Aggregates
-    module Model
-      def size
-        count
-      end
-    end
-    module Collection
-      def size
-        loaded? ? super : count
-      end
-    end
-  end
 end

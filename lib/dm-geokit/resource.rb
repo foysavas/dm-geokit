@@ -130,11 +130,11 @@ module DataMapper
 
         # Hack in the distance field by adding the :fields option to the query
         def expand_fields(fields, distance_field, sql)
-          f = DataMapper::Property.new(self, "#{distance_field}_distance".to_sym, DataMapper::Types::Distance, :field => "#{sql} as #{distance_field}_distance")
+          f = DataMapper::Property::Distance.new(self, "#{distance_field}_distance".to_sym, :field => "#{sql} as #{distance_field}_distance")
           if fields.is_a?(Array) # user specified fields, just tack this onto the end
-            fields + [f]
+            [f] + fields
           else # otherwise since we specify :fields, we have to add back in the original fields it would have selected
-            self.properties(repository.name).defaults + [f]
+            [f] + self.properties(repository.name).defaults
           end
         end
 
@@ -179,23 +179,13 @@ module DataMapper
     end
 
     module DataObjectsAdapter
-      def self.included(base)
-        base.send(:include, SQL)
-      end
-      module SQL
-        def self.included(base)
-          base.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            # FIXME: figure out a cleaner approach than AMC
-            alias property_to_column_name_without_distance property_to_column_name
-            alias property_to_column_name property_to_column_name_with_distance
-          RUBY
-        end
-        
-        def property_to_column_name_with_distance(property, qualify, qualifier = nil)
-          if property.is_a?(DataMapper::Property) and property.type == DataMapper::Types::Distance
-            property.field
+      extend Chainable
+      chainable do
+        def property_to_column_name(property, qualify)
+          if property.is_a?(DataMapper::Property::Distance)
+            property.options[:field]
           else
-            property_to_column_name_without_distance(property, qualify, qualifier)
+            super(property, qualify)
           end
         end
       end
@@ -216,9 +206,9 @@ module DataMapper
     end
   end
 
-  module Types
-    class Distance < DataMapper::Type
-      primitive Float
+  class Property
+    class Distance < Float
+      
     end
   end
 

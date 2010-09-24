@@ -12,7 +12,7 @@ module DataMapper
         send :include, InstanceMethods
         send :include, ::GeoKit::Mappable
 
-        property name.to_sym, String, :length => 255
+        property name.to_sym, String, :length => 255, :auto_validation => false
         property "#{name}_distance".to_sym, Float
 
         PROPERTY_NAMES.each do |p|

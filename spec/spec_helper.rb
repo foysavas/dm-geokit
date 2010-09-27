@@ -1,6 +1,6 @@
 $TESTING=true
 $:.unshift File.join(File.dirname(__FILE__), '..', 'lib')
-%w(dm-geokit dm-migrations dm-is-versioned).each{|l| require l}
+%w(dm-geokit dm-validations dm-migrations dm-is-versioned).each{|l| require l}
 
 DataMapper::Logger.new(STDOUT, :debug)
 DataMapper.setup(:default, "mysql://root:1nt3rfac3@localhost/dm_geokit_test")

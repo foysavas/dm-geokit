@@ -12,7 +12,14 @@ module DataMapper
         send :include, InstanceMethods
         send :include, ::GeoKit::Mappable
 
-        property name.to_sym, String, :length => 255, :auto_validation => false
+        if defined?(DataMapper::Validations)
+          # since we return a custom object when this property is called, it breaks
+          # when dm-validations is included, so we set auto_validation to false if
+          # dm-validations is loaded
+          property name.to_sym, String, :length => 255, :auto_validation => false
+        else
+          property name.to_sym, String, :length => 255
+        end
         property "#{name}_distance".to_sym, Float
 
         PROPERTY_NAMES.each do |p|

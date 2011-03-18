@@ -30,8 +30,6 @@ module DataMapper
           end
         end
 
-        DataMapper.auto_upgrade!
-
         if options[:auto_geocode] == true or options[:auto_geocode].nil?
           define_method :auto_geocode? do
             true

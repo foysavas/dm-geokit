@@ -92,8 +92,8 @@ module DataMapper
 
         # Looks in the query for keys that are a DistanceOperator, then extracts the keys/values and turns them into conditions
         def prepare_query(query)
-          query.each_pair do |k,v|
-            next if not k.is_a?(DistanceOperator)
+          distance_operators = query.select { |k,v| k.is_a? DistanceOperator }
+          distance_operators.each do |k,v|
             field = k.target
             origin = v[:origin].is_a?(String) ? ::GeoKit::Geocoders::MultiGeocoder.geocode(v[:origin]) : v[:origin]
             distance = v[:distance]

@@ -92,15 +92,18 @@ module DataMapper
 
         # Looks in the query for keys that are a DistanceOperator, then extracts the keys/values and turns them into conditions
         def prepare_query(query)
-          distance_operators = query.select { |k,v| k.is_a? DistanceOperator }
-          distance_operators.each do |k,v|
-            field = k.target
-            origin = v[:origin].is_a?(String) ? ::GeoKit::Geocoders::MultiGeocoder.geocode(v[:origin]) : v[:origin]
-            distance = v[:distance]
-            query[:conditions] = expand_conditions(query[:conditions], "#{sphere_distance_sql(field, origin, distance.measurement)}", distance.to_f)
-            query[:conditions] = apply_bounds_conditions(query[:conditions], field, bounds_from_distance(distance.to_f, origin, distance.measurement))
-            query[:fields] = expand_fields(query[:fields], field, "#{sphere_distance_sql(field, origin, distance.measurement)}")
-            query.delete(k)
+          begin
+            distance_operators = query.select { |k,v| k.is_a? DistanceOperator }
+            distance_operators.each do |k,v|
+              field = k.target
+              origin = v[:origin].is_a?(String) ? ::GeoKit::Geocoders::MultiGeocoder.geocode(v[:origin]) : v[:origin]
+              distance = v[:distance]
+              query[:conditions] = expand_conditions(query[:conditions], "#{sphere_distance_sql(field, origin, distance.measurement)}", distance.to_f)
+              query[:conditions] = apply_bounds_conditions(query[:conditions], field, bounds_from_distance(distance.to_f, origin, distance.measurement))
+              query[:fields] = expand_fields(query[:fields], field, "#{sphere_distance_sql(field, origin, distance.measurement)}")
+              query.delete(k)
+            end
+          rescue NoMethodError
           end
           query
         end

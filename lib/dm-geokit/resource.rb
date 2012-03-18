@@ -17,10 +17,12 @@ module DataMapper
         # both quote and truncate what they believe to be a column name,
         # meaning the query fails. This is a monkey patch to fix it:
         if repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
-          repository.adapter.class.module_eval do
-            alias_method :orig_quote_name, :quote_name
-            def quote_name(name)
-              name.include?('(') ? name : orig_quote_name(name)
+          unless repository.adapter.class.private_instance_methods.include? :orig_quote_name
+            repository.adapter.class.module_eval do
+              alias_method :orig_quote_name, :quote_name
+              def quote_name(name)
+                name.include?('(') ? name : orig_quote_name(name)
+              end
             end
           end
         end

@@ -12,6 +12,19 @@ module DataMapper
         send :include, InstanceMethods
         send :include, ::GeoKit::Mappable
 
+        # dm-geokit tries to push through some raw SQL to calculate the
+        # *_distance column. The dm-mysql-adapter and dm-postgres-adapter
+        # both quote and truncate what they believe to be a column name,
+        # meaning the query fails. This is a monkey patch to fix it:
+        if repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
+          repository.adapter.class.module_eval do
+            alias_method :orig_quote_name, :quote_name
+            def quote_name(name)
+              name.include?('(') ? name : orig_quote_name(name)
+            end
+          end
+        end
+
         if defined?(DataMapper::Validations)
           # since we return a custom object when this property is called, it breaks
           # when dm-validations is included, so we set auto_validation to false if

@@ -12,6 +12,21 @@ module DataMapper
         send :include, InstanceMethods
         send :include, ::GeoKit::Mappable
 
+        # dm-geokit tries to push through some raw SQL to calculate the
+        # *_distance column. The dm-mysql-adapter and dm-postgres-adapter
+        # both quote and truncate what they believe to be a column name,
+        # meaning the query fails. This is a monkey patch to fix it:
+        if repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
+          unless repository.adapter.class.private_instance_methods.include? :orig_quote_name
+            repository.adapter.class.module_eval do
+              alias_method :orig_quote_name, :quote_name
+              def quote_name(name)
+                name.include?('(') ? name : orig_quote_name(name)
+              end
+            end
+          end
+        end
+
         if defined?(DataMapper::Validations)
           # since we return a custom object when this property is called, it breaks
           # when dm-validations is included, so we set auto_validation to false if
@@ -112,8 +127,7 @@ module DataMapper
         def sphere_distance_sql(field, origin, units)
           lat = deg2rad(origin.lat)
           lng = deg2rad(origin.lng)
-          qualified_lat_column = "`#{storage_name}`.`#{field}_lat`"
-          qualified_lng_column = "`#{storage_name}`.`#{field}_lng`"
+          qualified_lat_column, qualified_lng_column = qualified_geo_column_pair(storage_name, field)
           "(ACOS(least(1,COS(#{lat})*COS(#{lng})*COS(RADIANS(#{qualified_lat_column}))*COS(RADIANS(#{qualified_lng_column}))+COS(#{lat})*SIN(#{lng})*COS(RADIANS(#{qualified_lat_column}))*SIN(RADIANS(#{qualified_lng_column}))+SIN(#{lat})*SIN(RADIANS(#{qualified_lat_column}))))*#{units_sphere_multiplier(units)})"
         end
 
@@ -155,13 +169,28 @@ module DataMapper
         end
 
         def apply_bounds_conditions(conditions, field, bounds)
-          qualified_lat_column = "`#{storage_name}`.`#{field}_lat`"
-          qualified_lng_column = "`#{storage_name}`.`#{field}_lng`"
+          qualified_lat_column, qualified_lng_column = qualified_geo_column_pair(storage_name, field)
           sw, ne = bounds.sw, bounds.ne
           lng_sql = bounds.crosses_meridian? ? "(#{qualified_lng_column}<=#{sw.lng} OR #{qualified_lng_column}>=#{ne.lng})" : "#{qualified_lng_column}>=#{sw.lng} AND #{qualified_lng_column}<=#{ne.lng}"
           bounds_sql = "#{qualified_lat_column}>=#{sw.lat} AND #{qualified_lat_column}<=#{ne.lat} AND #{lng_sql}"
           conditions[0] << " AND (#{bounds_sql})"
           conditions
+        end
+
+        def qualified_geo_column_pair(storage_name, field)
+          [quote_name(storage_name) + "." + quote_name("#{field}_lat"),
+           quote_name(storage_name) + "." + quote_name("#{field}_lng")]
+        end
+
+        def quote_name(name)
+          case repository.adapter.options[:adapter]
+          when "mysql"
+            "`#{name}`"
+          when "postgresql"
+            "\"#{name.gsub('"', '""')}\""
+          else
+            "\"#{name.gsub('"', '""')}\""
+          end
         end
 
       end
